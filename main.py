@@ -5,6 +5,9 @@ from io import BytesIO
 import requests
 
 
+MAP_VALUES = ('map', 'sat', 'sat,skl')
+
+
 def change_delta(previous, k):
     f_p = float(previous)
     change = f_p / 1.6
@@ -37,6 +40,7 @@ if __name__ == '__main__':
     delta = '0.002' #Изменяемая часть
 
     FPS = 60
+    current_map_value = 0
     while run:
         k1, k2 = 0, 0
         for event in pygame.event.get():
@@ -55,12 +59,16 @@ if __name__ == '__main__':
                     k2 = -1
                 elif event.key == pygame.K_RIGHT:
                     k2 = 1
+                elif event.key == pygame.K_k:
+                    current_map_value -= 1
+                elif event.key == pygame.K_l:
+                    current_map_value += 1
         coords = change_coords(coords, k1, k2, delta)
 
         params = {
             "ll": ",".join([coords[0], coords[1]]),
             "spn": ",".join([delta, delta]),
-            "l": "map"
+            "l": MAP_VALUES[current_map_value % 3]
         }
 
         map_api_server = "http://static-maps.yandex.ru/1.x/"
