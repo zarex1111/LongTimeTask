@@ -13,6 +13,17 @@ def change_delta(previous, k):
     return str(f_p)
 
 
+def change_coords(previous, k1, k2, delta):
+    moving = float(delta) * 0.3
+    par, mer = previous
+    par, mer = float(par), float(mer)
+    if -180 < par + k2 * moving < 180:
+        par += k2 * moving
+    if -90 < mer + k1 * moving < 90:
+        mer += k1 * moving
+    return (str(par), str(mer))
+
+
 if __name__ == '__main__':
 
     pygame.init()
@@ -25,8 +36,9 @@ if __name__ == '__main__':
     coords = ('37.168', '56.737')  #Изменяемая часть
     delta = '0.002' #Изменяемая часть
 
-    FPS = 10
+    FPS = 60
     while run:
+        k1, k2 = 0, 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit(0)
@@ -35,6 +47,15 @@ if __name__ == '__main__':
                     delta = change_delta(delta, -1)
                 elif event.key == pygame.K_PAGEUP:
                     delta = change_delta(delta, 1)
+                elif event.key == pygame.K_UP:
+                    k1 = 1
+                elif event.key == pygame.K_DOWN:
+                    k1 = -1
+                elif event.key == pygame.K_LEFT:
+                    k2 = -1
+                elif event.key == pygame.K_RIGHT:
+                    k2 = 1
+        coords = change_coords(coords, k1, k2, delta)
 
         params = {
             "ll": ",".join([coords[0], coords[1]]),
