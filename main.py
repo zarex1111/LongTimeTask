@@ -59,9 +59,9 @@ if __name__ == '__main__':
                     k2 = -1
                 elif event.key == pygame.K_RIGHT:
                     k2 = 1
-                elif event.key == pygame.K_k:
+                elif event.key == pygame.K_LALT:
                     current_map_value -= 1
-                elif event.key == pygame.K_l:
+                elif event.key == pygame.K_RALT:
                     current_map_value += 1
         coords = change_coords(coords, k1, k2, delta)
 
