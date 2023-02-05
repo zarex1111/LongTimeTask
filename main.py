@@ -6,6 +6,7 @@ from pygame_widgets.button import ButtonArray, Button
 from pygame_widgets.toggle import Toggle
 import pygame_widgets
 from pygame_textinput.pygame_textinput import TextInputVisualizer
+import math
 
 
 MAP_VALUES = ('map', 'sat', 'sat,skl')
@@ -106,6 +107,16 @@ def clear_marks():
     post_code = ''
 
 
+def calculate_coords(pos, middle_point, delta):
+    zero_x, zero_y = map(float, middle_point)
+    angle_x = zero_x - float(delta) / 2
+    angle_y = zero_y - float(delta) / 2
+
+    angle_x += float(pos[0]) * float(delta) / 600
+    angle_y += float(pos[1] - 50) * float(delta) / 450
+    return (str(round(angle_x, 6)), str(round(angle_y, 6)))
+
+
 if __name__ == '__main__':
 
     pygame.init()
@@ -143,6 +154,8 @@ if __name__ == '__main__':
     toggle_label_font = pygame.font.Font(None, 20)
     postal_code_text = toggle_label_font.render('Переключатель индекса', True, (0, 0, 0))
 
+    point_coords = None
+
     FPS = 100
     current_map_value = 0
     while run:
@@ -164,6 +177,10 @@ if __name__ == '__main__':
                     k2 = -1
                 elif event.key == pygame.K_RIGHT:
                     k2 = 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == pygame.BUTTON_LEFT:
+                    if 0 <= event.pos[0] <= 600 and 50 <= event.pos[1] <= 500:
+                        point_coords = calculate_coords(event.pos, coords, delta)
         coords = change_coords(coords, k1, k2, delta)
 
         textinput.update(events)
@@ -186,6 +203,8 @@ if __name__ == '__main__':
             params['pt'] = ','.join(mark) + ',ya_ru'
             if len(marks) > 1:
                 params['pt'] += '&'
+        if point_coords is not None:
+            params['pt'] = ','.join(point_coords) + ',ya_ru'
         if len(params['pt']) == 0:
             params.pop('pt')
 
