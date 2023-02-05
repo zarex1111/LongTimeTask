@@ -3,6 +3,7 @@ import sys
 from io import BytesIO
 import requests
 from pygame_widgets.button import ButtonArray, Button
+from pygame_widgets.toggle import Toggle
 import pygame_widgets
 from pygame_textinput.pygame_textinput import TextInputVisualizer
 
@@ -35,7 +36,7 @@ def format_text_block(frame_width, frame_height, text):
 
 def get_parameters(toponym, delta):
 
-    global side_text
+    global side_text, post_code
 
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
@@ -51,6 +52,10 @@ def get_parameters(toponym, delta):
 
     json_response = response.json()
     side_text = json_response['response']["GeoObjectCollection"]["featureMember"][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
+    try:
+        post_code = json_response['response']["GeoObjectCollection"]["featureMember"][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
+    except Exception:
+        post_code = ''
     toponym = json_response["response"]["GeoObjectCollection"][
         "featureMember"][0]["GeoObject"]
     toponym_coodrinates = toponym["Point"]["pos"]
@@ -95,9 +100,10 @@ def get_toponym():
 
 
 def clear_marks():
-    global marks, side_text
+    global marks, side_text, post_code
     marks = []
     side_text = 'Пока ничего не выбрано'
+    post_code = ''
 
 
 if __name__ == '__main__':
@@ -130,6 +136,12 @@ if __name__ == '__main__':
     clear_marks_button = Button(screen, 0, 550, 600, 25, font=font, onClick=lambda: clear_marks(), text='Стереть предыдущие результаты')
 
     side_text = 'Пока ничего не выбрано'
+
+    post_code = ''
+    should_show_post_code = False
+    postal_code_toggle = Toggle(screen, 650, 540, 200, 25, startOn=True)
+    toggle_label_font = pygame.font.Font(None, 20)
+    postal_code_text = toggle_label_font.render('Переключатель индекса', True, (0, 0, 0))
 
     FPS = 100
     current_map_value = 0
@@ -189,6 +201,10 @@ if __name__ == '__main__':
         for row in side_text.split('\n'):
             textbox = full_adress_font.render(row, True, (0, 0, 0))
             text_rows.append(textbox)
+
+        if postal_code_toggle.getValue() and post_code != '':
+            text_rows.append(full_adress_font.render(f'Почтовый индекс: {post_code}', True, (0, 0, 0)))
+
         screen.fill((255, 255, 255))
         screen.blit(img, (0, 50))
         
@@ -196,6 +212,8 @@ if __name__ == '__main__':
 
         for i in range(len(text_rows)):
             screen.blit(text_rows[i], (615, 25 + i * 30))
+
+        screen.blit(postal_code_text, (650, 520))
 
         pygame_widgets.update(events)
         pygame.display.update()
