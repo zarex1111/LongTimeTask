@@ -10,7 +10,32 @@ from pygame_textinput.pygame_textinput import TextInputVisualizer
 MAP_VALUES = ('map', 'sat', 'sat,skl')
 
 
+def format_text_block(frame_width, frame_height, text):
+    text += '\n'
+    data = list(map(lambda x: x + '\n', text.split('\n')))
+    rows = frame_height
+    width = frame_width
+    data = data[:rows]
+
+    text = ''
+
+    while rows > 0 and len(data) > 0:
+        if len(data[0]) > width and data[0][width] != '\n':
+            text += data[0][:width] + '\n'
+            data[0] = data[0][width:]
+            rows -= 1
+        else:
+            text += data.pop(0)
+            rows -= 1
+    if len(text.split('\n')) > rows:
+        if text[-1] == '\n':
+                text = text[:-1]
+    return text
+
+
 def get_parameters(toponym, delta):
+
+    global side_text
 
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
 
@@ -25,6 +50,7 @@ def get_parameters(toponym, delta):
         pass
 
     json_response = response.json()
+    side_text = json_response['response']["GeoObjectCollection"]["featureMember"][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
     toponym = json_response["response"]["GeoObjectCollection"][
         "featureMember"][0]["GeoObject"]
     toponym_coodrinates = toponym["Point"]["pos"]
@@ -69,15 +95,16 @@ def get_toponym():
 
 
 def clear_marks():
-    global marks
+    global marks, side_text
     marks = []
+    side_text = 'Пока ничего не выбрано'
 
 
 if __name__ == '__main__':
 
     pygame.init()
 
-    screen = pygame.display.set_mode((600, 575))
+    screen = pygame.display.set_mode((900, 575))
     pygame.display.set_caption('Большая задача на Maps Api')
 
     run = True 
@@ -101,6 +128,8 @@ if __name__ == '__main__':
     marks = []
 
     clear_marks_button = Button(screen, 0, 550, 600, 25, font=font, onClick=lambda: clear_marks(), text='Стереть предыдущие результаты')
+
+    side_text = 'Пока ничего не выбрано'
 
     FPS = 100
     current_map_value = 0
@@ -152,10 +181,22 @@ if __name__ == '__main__':
         response = requests.get(map_api_server, params=params)
         img = pygame.image.load(BytesIO(response.content))
 
+        side_text = format_text_block(30, 29, side_text)
+        while side_text[-1] == '\n':
+            side_text = side_text[:-1]
+        text_rows = []
+        full_adress_font = pygame.font.Font(None, 20)
+        for row in side_text.split('\n'):
+            textbox = full_adress_font.render(row, True, (0, 0, 0))
+            text_rows.append(textbox)
         screen.fill((255, 255, 255))
         screen.blit(img, (0, 50))
         
-        screen.blit(textinput.surface, (0, 510))
+        screen.blit(textinput.surface, (15, 510))
+
+        for i in range(len(text_rows)):
+            screen.blit(text_rows[i], (615, 25 + i * 30))
+
         pygame_widgets.update(events)
         pygame.display.update()
         pygame.display.flip()
