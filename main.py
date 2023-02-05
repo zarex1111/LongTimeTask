@@ -113,7 +113,7 @@ def calculate_coords(pos, middle_point, delta):
     angle_y = zero_y - float(delta) / 2
 
     angle_x += float(pos[0]) * float(delta) / 600
-    angle_y += float(pos[1] - 50) * float(delta) / 450
+    angle_y += float(pos[1] - 50) * math.cos(math.radians(float(delta))) / 450
     return (str(round(angle_x, 6)), str(round(angle_y, 6)))
 
 
