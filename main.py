@@ -3,9 +3,16 @@ import pygame
 import sys
 from io import BytesIO
 import requests
+from pygame_widgets.button import ButtonArray
+import pygame_widgets
 
 
 MAP_VALUES = ('map', 'sat', 'sat,skl')
+
+
+def switch_mode(value):
+    global current_map_value
+    current_map_value = value
 
 
 def change_delta(previous, k):
@@ -39,11 +46,18 @@ if __name__ == '__main__':
     coords = ('37.168', '56.737')  #Изменяемая часть
     delta = '0.002' #Изменяемая часть
 
+    switcher = ButtonArray(
+        screen, 0, 0, 600, 50, (3, 1), 
+        texts=('Схема', 'Спутник', 'Гибрид'),
+        onClicks=[lambda: switch_mode(0), lambda: switch_mode(1), lambda: switch_mode(2)]
+    )
+
     FPS = 60
     current_map_value = 0
     while run:
         k1, k2 = 0, 0
-        for event in pygame.event.get():
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 sys.exit(0)
             elif event.type == pygame.KEYDOWN:
@@ -59,16 +73,12 @@ if __name__ == '__main__':
                     k2 = -1
                 elif event.key == pygame.K_RIGHT:
                     k2 = 1
-                elif event.key == pygame.K_LALT:
-                    current_map_value -= 1
-                elif event.key == pygame.K_RALT:
-                    current_map_value += 1
         coords = change_coords(coords, k1, k2, delta)
 
         params = {
             "ll": ",".join([coords[0], coords[1]]),
             "spn": ",".join([delta, delta]),
-            "l": MAP_VALUES[current_map_value % 3]
+            "l": MAP_VALUES[current_map_value]
         }
 
         map_api_server = "http://static-maps.yandex.ru/1.x/"
@@ -77,6 +87,9 @@ if __name__ == '__main__':
         
         screen.fill((0, 0, 0))
         screen.blit(img, (0, 0))
+
+        pygame_widgets.update(events)
+        pygame.display.update()
 
         pygame.display.flip()
         pygame.time.Clock().tick(FPS)
