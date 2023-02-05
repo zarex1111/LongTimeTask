@@ -1,13 +1,41 @@
-from needful_funcs import get_params
 import pygame
 import sys
 from io import BytesIO
 import requests
-from pygame_widgets.button import ButtonArray
+from pygame_widgets.button import ButtonArray, Button
 import pygame_widgets
+from pygame_textinput.pygame_textinput import TextInputVisualizer
 
 
 MAP_VALUES = ('map', 'sat', 'sat,skl')
+
+
+def get_parameters(toponym, delta):
+
+    geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
+    geocoder_params = {
+        "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+        "geocode": toponym,
+        "format": "json"}
+
+    response = requests.get(geocoder_api_server, params=geocoder_params)
+
+    if not response:
+        pass
+
+    json_response = response.json()
+    toponym = json_response["response"]["GeoObjectCollection"][
+        "featureMember"][0]["GeoObject"]
+    toponym_coodrinates = toponym["Point"]["pos"]
+    toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
+
+    map_params = {
+        "ll": ",".join([toponym_longitude, toponym_lattitude]),
+        "spn": ",".join([delta, delta]),
+        "l": "map"
+    }
+    return map_params
 
 
 def switch_mode(value):
@@ -34,11 +62,17 @@ def change_coords(previous, k1, k2, delta):
     return (str(par), str(mer))
 
 
+def get_toponym():
+    global toponym, should_search_toponym
+    toponym = textinput.value
+    should_search_toponym = True
+
+
 if __name__ == '__main__':
 
     pygame.init()
 
-    screen = pygame.display.set_mode((600, 450))
+    screen = pygame.display.set_mode((600, 550))
     pygame.display.set_caption('Большая задача на Maps Api')
 
     run = True 
@@ -51,6 +85,12 @@ if __name__ == '__main__':
         texts=('Схема', 'Спутник', 'Гибрид'),
         onClicks=[lambda: switch_mode(0), lambda: switch_mode(1), lambda: switch_mode(2)]
     )
+
+    toponym = ''
+    should_search_toponym = False
+    font = pygame.font.Font('font.otf', 30)
+    textinput = TextInputVisualizer(font_object=font)
+    search_button = Button(screen, 550, 500, 50, 50, font=font, onClick=lambda: get_toponym())
 
     FPS = 60
     current_map_value = 0
@@ -81,15 +121,21 @@ if __name__ == '__main__':
             "l": MAP_VALUES[current_map_value]
         }
 
+        pygame_widgets.update(events)
+        textinput.update(events)
+
+        if should_search_toponym and toponym != '':
+            params = get_parameters(toponym, delta)
+            params['pt'] = params['ll'] + ',ya_ru'
+
         map_api_server = "http://static-maps.yandex.ru/1.x/"
         response = requests.get(map_api_server, params=params)
         img = pygame.image.load(BytesIO(response.content))
+
+        screen.fill((255, 255, 255))
+        screen.blit(img, (0, 50))
         
-        screen.fill((0, 0, 0))
-        screen.blit(img, (0, 0))
-
-        pygame_widgets.update(events)
+        screen.blit(textinput.surface, (0, 510))
         pygame.display.update()
-
         pygame.display.flip()
         pygame.time.Clock().tick(FPS)
