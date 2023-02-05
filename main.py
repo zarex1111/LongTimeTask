@@ -68,11 +68,16 @@ def get_toponym():
     should_search_toponym = True
 
 
+def clear_marks():
+    global marks
+    marks = []
+
+
 if __name__ == '__main__':
 
     pygame.init()
 
-    screen = pygame.display.set_mode((600, 550))
+    screen = pygame.display.set_mode((600, 575))
     pygame.display.set_caption('Большая задача на Maps Api')
 
     run = True 
@@ -95,7 +100,9 @@ if __name__ == '__main__':
 
     marks = []
 
-    FPS = 60
+    clear_marks_button = Button(screen, 0, 550, 600, 25, font=font, onClick=lambda: clear_marks(), text='Стереть предыдущие результаты')
+
+    FPS = 100
     current_map_value = 0
     while run:
         k1, k2 = 0, 0
@@ -123,10 +130,10 @@ if __name__ == '__main__':
         if should_search_toponym and toponym != '':
             params = get_parameters(toponym, delta)
             params['pt'] = params['ll'] + ',ya_ru'
-            should_search_toponym = False
             delta = params['spn'].split(',')[0]
             coords = params['ll'].split(',')
             marks = [coords]
+            should_search_toponym = False
 
         params = {
             "ll": ",".join([coords[0], coords[1]]),
