@@ -26,6 +26,8 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
 
         scale = int(self.scale)
+        coords = list(map(float, self.coords))
+        coeff = 0.0005 * (18 - scale) ** 3
 
         if event.key() == Qt.Key.Key_PageUp:
             if scale > 1:
@@ -33,8 +35,21 @@ class MainWindow(QMainWindow):
         elif event.key() == Qt.Key.Key_PageDown:
             if scale < 17:
                 scale += 1
+        elif event.key() == Qt.Key.Key_Down:
+            if coords[1] - 2 * coeff >= -180:
+                coords[1] -= coeff
+        elif event.key() == Qt.Key.Key_Up:
+            if coords[1] + 2 * coeff <= 180:
+                coords[1] += coeff
+        elif event.key() == Qt.Key.Key_Left:
+            if coords[0] - 2 * coeff >= -90:
+                coords[0] -= coeff
+        elif event.key() == Qt.Key.Key_Right:
+            if coords[0] + 2 * coeff <= 90:
+                coords[0] += coeff
         
         self.scale = str(scale)
+        self.coords = tuple(list(map(str, coords)))
 
         self.draw_image()
 
