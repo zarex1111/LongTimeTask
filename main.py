@@ -1,11 +1,13 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.uic import loadUi
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import Qt
 import sys
 import requests
 from io import BytesIO
 
+
+MAP_MODES = {'Гибрид': 'sat,skl', 'Спутник': 'sat', 'Карта': 'map'}
 
 class MainWindow(QMainWindow):
 
@@ -17,9 +19,22 @@ class MainWindow(QMainWindow):
         self.mode = 'map'
         self.scale = "17"
 
-        self.run()
-        
+        self.pushButton.clicked.connect(lambda: self.update_mode('Карта'))
+        self.pushButton.setIcon(QIcon('img/map.png'))
+        self.pushButton_2.clicked.connect(lambda: self.update_mode('Спутник'))
+        self.pushButton_2.setIcon(QIcon('img/sat.jpg'))
+        self.pushButton_3.clicked.connect(lambda: self.update_mode('Гибрид'))
+        self.pushButton_3.setIcon(QIcon('img/gib.png'))
+
+        self.draw_image()
+
+
     def run(self):
+        self.draw_image()
+
+
+    def update_mode(self, text):
+        self.mode = MAP_MODES[text]
         self.draw_image()
 
 
@@ -32,19 +47,20 @@ class MainWindow(QMainWindow):
         if event.key() == Qt.Key.Key_PageUp:
             if scale > 1:
                 scale -= 1
+
         elif event.key() == Qt.Key.Key_PageDown:
             if scale < 17:
                 scale += 1
-        elif event.key() == Qt.Key.Key_Down:
+        elif event.key() == Qt.Key.Key_S:
             if coords[1] - 2 * coeff >= -180:
                 coords[1] -= coeff
-        elif event.key() == Qt.Key.Key_Up:
+        elif event.key() == Qt.Key.Key_W:
             if coords[1] + 2 * coeff <= 180:
                 coords[1] += coeff
-        elif event.key() == Qt.Key.Key_Left:
+        elif event.key() == Qt.Key.Key_A:
             if coords[0] - 2 * coeff >= -90:
                 coords[0] -= coeff
-        elif event.key() == Qt.Key.Key_Right:
+        elif event.key() == Qt.Key.Key_D:
             if coords[0] + 2 * coeff <= 90:
                 coords[0] += coeff
         
