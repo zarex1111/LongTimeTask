@@ -19,15 +19,52 @@ class MainWindow(QMainWindow):
         self.mode = 'map'
         self.scale = "17"
 
-        self.pushButton.clicked.connect(lambda: self.update_mode('Карта'))
-        self.pushButton.setIcon(QIcon('img/map.png'))
-        self.pushButton_2.clicked.connect(lambda: self.update_mode('Спутник'))
-        self.pushButton_2.setIcon(QIcon('img/sat.jpg'))
-        self.pushButton_3.clicked.connect(lambda: self.update_mode('Гибрид'))
-        self.pushButton_3.setIcon(QIcon('img/gib.png'))
+        self.setup_buttons()
+        self.design_buttons()
 
         self.draw_image()
 
+    def setup_buttons(self):
+        self.pushButton.clicked.connect(lambda: self.update_mode('Карта'))
+        self.pushButton_2.clicked.connect(lambda: self.update_mode('Спутник'))
+        self.pushButton_3.clicked.connect(lambda: self.update_mode('Гибрид'))
+        self.pushButton_4.clicked.connect(self.search_adress)
+
+    def design_buttons(self):
+        self.pushButton.setIcon(QIcon('img/map.png'))
+        self.pushButton_2.setIcon(QIcon('img/sat.jpg'))
+        self.pushButton_3.setIcon(QIcon('img/gib.png'))
+        self.pushButton_4.setIcon(QIcon('img/search.png'))
+
+    def search_adress(self):
+        adress = self.lineEdit.text()
+        if adress == '':
+            return
+        params = self.search_toponym(adress)
+
+        self.coords = params['ll'].split(',')
+        
+        self.draw_image()
+        
+    def search_toponym(self, toponym):
+        geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
+        geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": toponym,
+            "format": "json"}
+
+        response = requests.get(geocoder_api_server, params=geocoder_params).json()
+        
+        toponym = response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+        toponym_coodrinates = toponym["Point"]["pos"]
+        toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
+
+        map_params = {
+            "ll": ",".join([toponym_longitude, toponym_lattitude])
+        }
+        return map_params
 
     def run(self):
         self.draw_image()
