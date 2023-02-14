@@ -15,14 +15,18 @@ class MainWindow(QMainWindow):
         super().__init__()
         loadUi('main.ui', self)
 
-        self.coords = ("23.346548", "42.685321")
-        self.mode = 'map'
-        self.scale = "17"
+        self.setup_parametres()
 
         self.setup_buttons()
         self.design_buttons()
 
         self.draw_image()
+
+    def setup_parametres(self):
+        self.coords = ("23.346548", "42.685321")
+        self.mode = 'map'
+        self.scale = "17"
+        self.marks = []
 
     def setup_buttons(self):
         self.pushButton.clicked.connect(lambda: self.update_mode('Карта'))
@@ -43,6 +47,8 @@ class MainWindow(QMainWindow):
         params = self.search_toponym(adress)
 
         self.coords = params['ll'].split(',')
+        self.marks = []
+        self.marks.append(params['pt'])
         
         self.draw_image()
         
@@ -62,7 +68,8 @@ class MainWindow(QMainWindow):
         toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
 
         map_params = {
-            "ll": ",".join([toponym_longitude, toponym_lattitude])
+            "ll": ",".join([toponym_longitude, toponym_lattitude]),
+            "pt": ",".join([toponym_longitude, toponym_lattitude]) + ',ya_ru'
         }
         return map_params
 
@@ -112,6 +119,8 @@ class MainWindow(QMainWindow):
         map_params = {'ll': ','.join(self.coords),
             'l': self.mode,
             'z': self.scale}
+        for mark in self.marks:
+            map_params['pt'] = mark
         img = requests.get("http://static-maps.yandex.ru/1.x/", params=map_params).content
 
         pixmap = QPixmap()
