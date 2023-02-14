@@ -33,12 +33,20 @@ class MainWindow(QMainWindow):
         self.pushButton_2.clicked.connect(lambda: self.update_mode('Спутник'))
         self.pushButton_3.clicked.connect(lambda: self.update_mode('Гибрид'))
         self.pushButton_4.clicked.connect(self.search_adress)
+        self.pushButton_5.clicked.connect(self.clear_all)
+
+    def clear_all(self):
+        self.lineEdit.clear()
+        self.marks = []
+
+        self.draw_image()
 
     def design_buttons(self):
         self.pushButton.setIcon(QIcon('img/map.png'))
         self.pushButton_2.setIcon(QIcon('img/sat.jpg'))
         self.pushButton_3.setIcon(QIcon('img/gib.png'))
         self.pushButton_4.setIcon(QIcon('img/search.png'))
+        self.pushButton_5.setIcon(QIcon('img/reset.png'))
 
     def search_adress(self):
         adress = self.lineEdit.text()
