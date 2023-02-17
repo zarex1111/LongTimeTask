@@ -27,6 +27,7 @@ class MainWindow(QMainWindow):
         self.mode = 'map'
         self.scale = "17"
         self.marks = []
+        self.side_text = ''
 
     def setup_buttons(self):
         self.pushButton.clicked.connect(lambda: self.update_mode('Карта'))
@@ -38,6 +39,7 @@ class MainWindow(QMainWindow):
     def clear_all(self):
         self.lineEdit.clear()
         self.marks = []
+        self.side_text = ''
 
         self.draw_image()
 
@@ -72,6 +74,7 @@ class MainWindow(QMainWindow):
         
         toponym = response["response"]["GeoObjectCollection"][
             "featureMember"][0]["GeoObject"]
+        self.side_text = response['response']["GeoObjectCollection"]["featureMember"][0]['GeoObject']['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
         toponym_coodrinates = toponym["Point"]["pos"]
         toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
 
@@ -130,6 +133,9 @@ class MainWindow(QMainWindow):
         for mark in self.marks:
             map_params['pt'] = mark
         img = requests.get("http://static-maps.yandex.ru/1.x/", params=map_params).content
+
+        self.textEdit.clear()
+        self.textEdit.append(self.side_text)
 
         pixmap = QPixmap()
         pixmap.loadFromData(img)
